@@ -1,5 +1,5 @@
 {
-    "name": "goalio/goalio-forgotpassword",
+    "name": "priorist/zf-goalio-forgotpassword",
     "description": "Adding Forgot Password functionalitiy to ZfcUser",
     "type": "library",
     "license": "BSD-3-Clause",
@@ -13,10 +13,15 @@
             "name": "Philipp Dobrigkeit",
             "email": "p.dobrigkeit@goalio.de",
             "homepage": "http://www.goalio.de"
+        },
+        {
+            "name": "André Simmert",
+            "email": "contact@priorist.com",
+            "homepage": "https://priorist.com"
         }
     ],
     "require": {
-        "goalio/goalio-mailservice": "1.*",
+        "priorist/zf-goalio-mailservice": "dev-master",
         "zf-commons/zfc-user": "1.*"
     },
     "autoload": {
