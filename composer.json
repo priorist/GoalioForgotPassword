@@ -20,11 +20,12 @@
             "homepage": "https://priorist.com"
         }
     ],
-    "minimum-stability": "dev",
     "require": {
         "priorist/zf-goalio-mailservice": "dev-master",
         "zf-commons/zfc-user": "1.*"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-0": {
             "GoalioForgotPassword": "src/"
