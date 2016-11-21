@@ -20,6 +20,7 @@
             "homepage": "https://priorist.com"
         }
     ],
+    "minimum-stability": "dev",
     "require": {
         "priorist/zf-goalio-mailservice": "dev-master",
         "zf-commons/zfc-user": "1.*"
