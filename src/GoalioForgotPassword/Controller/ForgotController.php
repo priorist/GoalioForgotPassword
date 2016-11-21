@@ -2,13 +2,16 @@
 
 namespace GoalioForgotPassword\Controller;
 
-use Zend\Form\Form;
+use Zend\Form\FormInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Stdlib\ResponseInterface as Response;
 use Zend\Stdlib\Parameters;
 use Zend\View\Model\ViewModel;
+use ZfcUser\Service\User as UserService;
+use ZfcUser\Options\UserControllerOptionsInterface;
+
 use GoalioForgotPassword\Service\Password as PasswordService;
-use GoalioForgotPassword\Options\ForgotControllerOptionsInterface;
+use GoalioForgotPassword\Options\ForgotOptionsInterface;
 
 class ForgotController extends AbstractActionController
 {
@@ -53,6 +56,32 @@ class ForgotController extends AbstractActionController
      * @var PasswordOptionsInterface
      */
     protected $zfcUserOptions;
+
+
+    protected $sessionContainer;
+    protected $streamSessionContainer;
+    protected $providerRepository;
+    protected $sourceRepository;
+    protected $translator;
+
+
+    public function __construct(
+        UserService $userService,
+        PasswordService $passwordService,
+        ForgotOptionsInterface $options,
+        UserControllerOptionsInterface $zfcUserOptions,
+        FormInterface $forgotForm,
+        FormInterface $resetForm
+    )
+    {
+        $this->setUserService($userService);
+        $this->setPasswordService($passwordService);
+        $this->setOptions($options);
+        $this->setZfcUserOptions($zfcUserOptions);
+        $this->setForgotForm($forgotForm);
+        $this->setResetForm($resetForm);
+    }
+
 
     /**
      * User page
@@ -160,9 +189,6 @@ class ForgotController extends AbstractActionController
 
     public function getUserService()
     {
-        if (!$this->userService) {
-            $this->userService = $this->getServiceLocator()->get('zfcuser_user_service');
-        }
         return $this->userService;
     }
 
@@ -174,9 +200,6 @@ class ForgotController extends AbstractActionController
 
     public function getPasswordService()
     {
-        if (!$this->passwordService) {
-            $this->passwordService = $this->getServiceLocator()->get('goalioforgotpassword_password_service');
-        }
         return $this->passwordService;
     }
 
@@ -188,26 +211,20 @@ class ForgotController extends AbstractActionController
 
     public function getForgotForm()
     {
-        if (!$this->forgotForm) {
-            $this->setForgotForm($this->getServiceLocator()->get('goalioforgotpassword_forgot_form'));
-        }
         return $this->forgotForm;
     }
 
-    public function setForgotForm(Form $forgotForm)
+    public function setForgotForm(FormInterface $forgotForm)
     {
         $this->forgotForm = $forgotForm;
     }
 
     public function getResetForm()
     {
-        if (!$this->resetForm) {
-            $this->setResetForm($this->getServiceLocator()->get('goalioforgotpassword_reset_form'));
-        }
         return $this->resetForm;
     }
 
-    public function setResetForm(Form $resetForm)
+    public function setResetForm(FormInterface $resetForm)
     {
         $this->resetForm = $resetForm;
     }
@@ -218,11 +235,20 @@ class ForgotController extends AbstractActionController
      * @param ForgotControllerOptionsInterface $options
      * @return ForgotController
      */
-    public function setOptions(ForgotControllerOptionsInterface $options)
+    public function setOptions(ForgotOptionsInterface $options)
     {
         $this->options = $options;
         return $this;
     }
+
+
+    public function setZfcUserOptions(UserControllerOptionsInterface $zfcUserOptions)
+    {
+        $this->zfcUserOptions = $zfcUserOptions;
+        return $this;
+    }
+
+
 
     /**
      * get options
@@ -231,17 +257,11 @@ class ForgotController extends AbstractActionController
      */
     public function getOptions()
     {
-        if (!$this->options instanceof ForgotControllerOptionsInterface) {
-            $this->setOptions($this->getServiceLocator()->get('goalioforgotpassword_module_options'));
-        }
         return $this->options;
     }
 
     public function getZfcUserOptions()
     {
-        if (!$this->zfcUserOptions instanceof PasswordOptionsInterface) {
-            $this->zfcUserOptions = $this->getServiceLocator()->get('zfcuser_module_options');
-        }
         return $this->zfcUserOptions;
     }
 }
