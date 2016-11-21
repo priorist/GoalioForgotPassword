@@ -10,9 +10,8 @@ use GoalioForgotPassword\Options\ForgotOptionsInterface;
 
 use Zend\ServiceManager\ServiceManager;
 
-use Zend\ServiceManager\ServiceManagerAwareInterface;
-
 use ZfcUser\Mapper\UserInterface as UserMapperInterface;
+use ZfcUser\Options\UserControllerOptionsInterface;
 use GoalioForgotPassword\Mapper\Password as PasswordMapper;
 
 use Zend\Crypt\Password\Bcrypt;
@@ -20,18 +19,36 @@ use Zend\Form\Form;
 
 use ZfcBase\EventManager\EventProvider;
 
-class Password extends EventProvider implements ServiceManagerAwareInterface
+use GoalioMailService\Mail\Service\Message as MailService;
+
+class Password extends EventProvider
 {
     /**
      * @var ModelMapper
      */
+    protected $mailService;
     protected $passwordMapper;
     protected $userMapper;
-    protected $serviceLocator;
     protected $options;
     protected $zfcUserOptions;
     protected $emailRenderer;
-    protected $emailTransport;
+
+
+    public function __construct(
+        MailService $mailService,
+        UserMapperInterface $userMapper,
+        PasswordMapper $passwordMapper,
+        ForgotOptionsInterface $options,
+        UserControllerOptionsInterface $zfcUserOptions
+    )
+    {
+        $this->setMailService($mailService);
+        $this->setUserMapper($userMapper);
+        $this->setPasswordMapper($passwordMapper);
+        $this->setOptions($options);
+        $this->setZfcUserOptions($zfcUserOptions);
+    }
+
 
     public function findByRequestKey($token)
     {
@@ -77,7 +94,7 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
 
     public function sendForgotEmailMessage($to, $model)
     {
-        $mailService = $this->getServiceManager()->get('goaliomailservice_message');
+        $mailService = $this->getMailService();
 
         $from = $this->getOptions()->getEmailFromAddress();
         $subject = $this->getOptions()->getResetEmailSubjectLine();
@@ -106,16 +123,6 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return true;
     }
 
-    public function getServiceManager()
-    {
-        return $this->serviceManager;
-    }
-
-    public function setServiceManager(ServiceManager $serviceManager)
-    {
-        $this->serviceManager = $serviceManager;
-        return $this;
-    }
 
     /**
      * getUserMapper
@@ -124,9 +131,6 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
      */
     public function getUserMapper()
     {
-        if (null === $this->userMapper) {
-            $this->userMapper = $this->getServiceManager()->get('zfcuser_user_mapper');
-        }
         return $this->userMapper;
     }
 
@@ -150,10 +154,6 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
 
     public function getPasswordMapper()
     {
-        if (null === $this->passwordMapper) {
-            $this->setPasswordMapper($this->getServiceManager()->get('goalioforgotpassword_password_mapper'));
-        }
-
         return $this->passwordMapper;
     }
 
@@ -163,26 +163,8 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return $this;
     }
 
-    public function getMessageTransport()
-    {
-        if (!$this->emailTransport instanceof TransportInterface) {
-            $this->setEmailTransport($this->getServiceManager()->get('goalioforgotpassword_email_transport'));
-        }
-
-        return $this->emailTransport;
-    }
-
-    public function setMessageTransport(EmailTransport $emailTransport)
-    {
-        $this->emailTransport = $emailTransport;
-        return $this;
-    }
-
     public function getOptions()
     {
-        if (!$this->options instanceof ForgotOptionsInterface) {
-            $this->setOptions($this->getServiceManager()->get('goalioforgotpassword_module_options'));
-        }
         return $this->options;
     }
 
@@ -194,9 +176,6 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
 
     public function getZfcUserOptions()
     {
-        if (!$this->zfcUserOptions instanceof PasswordOptionsInterface) {
-            $this->setZfcUserOptions($this->getServiceManager()->get('zfcuser_module_options'));
-        }
         return $this->zfcUserOptions;
     }
 
@@ -204,5 +183,16 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
     {
         $this->zfcUserOptions = $zfcUserOptions;
         return $this;
+    }
+
+    public function setMailService(MailService $mailService)
+    {
+        $this->mailService = $mailService;
+        return $this;
+    }
+
+    public function getMailService()
+    {
+        return $this->mailService;
     }
 }
